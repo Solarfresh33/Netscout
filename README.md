@@ -1,6 +1,6 @@
 # NetScout
 
-Network Security Reconnaissance & Analysis Tool — scan ports, analyze SSL/TLS, enumerate DNS, and audit HTTP security headers from a single command.
+Network Security Reconnaissance & Analysis Tool. Scan ports, analyze SSL/TLS, enumerate DNS, and audit HTTP security headers from a single command.
 
 > **For authorized use only.** Only scan systems you own or have explicit permission to test.
 
@@ -47,7 +47,7 @@ python -m netscout.cli scan example.com --output ./reports
 
 ## Commands
 
-### `scan` — Run a security scan
+### `scan` : Run a security scan
 
 ```
 python -m netscout.cli scan TARGET [OPTIONS]
@@ -92,7 +92,7 @@ python -m netscout.cli scan example.com -q --output ./reports --format html
 
 ---
 
-### `info` — Show module status
+### `info` : Show module status
 
 ```bash
 python -m netscout.cli info
