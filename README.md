@@ -1,6 +1,12 @@
 # CAMILLE
 
-**C**yber **A**udit & **M**onitoring **I**ntelligence for **L**ocal and **L**arge **E**nvironments. Scan ports, analyze SSL/TLS, enumerate DNS, and audit HTTP security headers from a single command.
+**C**yber      
+**A**udit &      
+**M**onitoring      
+**I**ntelligence for     
+**L**ocal and       
+**L**arge       
+**E**nvironments. Scan ports, analyze SSL/TLS, enumerate DNS, and audit HTTP security headers from a single command.
 
 > **For authorized use only.** Only scan systems you own or have explicit permission to test.
 
