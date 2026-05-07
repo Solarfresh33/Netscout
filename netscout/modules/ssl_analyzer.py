@@ -34,7 +34,16 @@ def analyze_ssl(host: str, port: int = 443) -> Optional[SSLResult]:
 
 def _extract_result(host: str, port: int, tls_sock: ssl.SSLSocket) -> SSLResult:
     cert = tls_sock.getpeercert()
-    cipher_name, proto, bits = tls_sock.cipher()
+
+    # tls_sock.cipher() can return None if the handshake hasn't fully
+    # completed or the peer closed the connection abruptly.
+    cipher_info = tls_sock.cipher()
+    if cipher_info is None:
+        cipher_name, proto, bits = "unknown", "unknown", 0
+    else:
+        cipher_name = cipher_info[0] or "unknown"
+        proto = cipher_info[1] or "unknown"
+        bits = cipher_info[2] or 0
 
     result = SSLResult(
         host=host,
@@ -42,17 +51,18 @@ def _extract_result(host: str, port: int, tls_sock: ssl.SSLSocket) -> SSLResult:
         version=proto,
         cipher=cipher_name,
         bits=bits or 0,
-        subject=_flatten_rdn(cert.get("subject", ())),
-        issuer=_flatten_rdn(cert.get("issuer", ())),
-        san=_extract_san(cert),
+        subject=_flatten_rdn(cert.get("subject", ())) if cert else {},
+        issuer=_flatten_rdn(cert.get("issuer", ())) if cert else {},
+        san=_extract_san(cert) if cert else [],
     )
 
-    not_before_str = cert.get("notBefore", "")
-    not_after_str = cert.get("notAfter", "")
-    if not_before_str:
-        result.not_before = _parse_cert_date(not_before_str)
-    if not_after_str:
-        result.not_after = _parse_cert_date(not_after_str)
+    if cert:
+        not_before_str = cert.get("notBefore", "")
+        not_after_str = cert.get("notAfter", "")
+        if not_before_str:
+            result.not_before = _parse_cert_date(not_before_str)
+        if not_after_str:
+            result.not_after = _parse_cert_date(not_after_str)
 
     _audit(result)
     return result

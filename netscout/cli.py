@@ -15,7 +15,13 @@ from rich.table import Table
 from rich import box
 
 from netscout.core.models import ScanResult
-from netscout.core.utils import is_valid_target, strip_scheme, severity_color
+from netscout.core.utils import (
+    is_valid_target,
+    is_private_target,
+    safe_filename,
+    strip_scheme,
+    severity_color,
+)
 from netscout.modules.port_scanner import scan_ports, TOP_PORTS
 from netscout.modules.ssl_analyzer import analyze_ssl
 from netscout.modules.dns_enum import enumerate_dns
@@ -77,6 +83,7 @@ def main() -> None:
 @click.option("--output", "-o", default=None, help="Output directory for reports")
 @click.option("--format", "-f", "fmt", default="both", type=click.Choice(["json", "html", "both"]), show_default=True)
 @click.option("--threads", default=100, show_default=True, help="Scanner thread count")
+@click.option("--allow-private", is_flag=True, help="Allow scanning of private/internal addresses (RFC 1918, loopback, etc.)")
 @click.option("--quiet", "-q", is_flag=True, help="Suppress banner and progress output")
 def scan(
     target: str,
@@ -90,6 +97,7 @@ def scan(
     output: Optional[str],
     fmt: str,
     threads: int,
+    allow_private: bool,
     quiet: bool,
 ) -> None:
     """Run a full security scan against TARGET (hostname, IP, or URL)."""
@@ -100,6 +108,14 @@ def scan(
 
     if not is_valid_target(clean_target):
         console.print(f"[red]Invalid target:[/red] {target}")
+        sys.exit(1)
+
+    if is_private_target(clean_target) and not allow_private:
+        console.print(
+            f"[red]Refusing to scan private/internal target:[/red] {clean_target}\n"
+            f"[yellow]Re-run with --allow-private if you really intend to scan internal "
+            f"infrastructure (and have authorisation to do so).[/yellow]"
+        )
         sys.exit(1)
 
     console.print(f"[bold]Target:[/bold] {clean_target}\n")
@@ -147,7 +163,7 @@ def scan(
     # ── Save reports ──────────────────────────────────────────────────────── #
     if output:
         out_dir = Path(output)
-        safe_name = clean_target.replace(".", "_")
+        safe_name = safe_filename(clean_target.replace(".", "_"))
         if fmt in ("json", "both"):
             json_path = save_json(result, out_dir / f"{safe_name}.json")
             console.print(f"[green]JSON report:[/green] {json_path}")

@@ -24,6 +24,9 @@ TOP_PORTS = [
     3306, 3389, 5432, 5900, 6379, 8080, 8443, 9200, 27017,
 ]
 
+# Hostnames that always resolve to a private/internal address.
+_PRIVATE_HOSTNAMES = {"localhost", "localhost.localdomain", "ip6-localhost"}
+
 
 def resolve_target(target: str) -> str:
     """Resolve hostname to IP, return as-is if already an IP."""
@@ -46,6 +49,8 @@ def is_valid_target(target: str) -> bool:
         return True
     except ValueError:
         pass
+    if cleaned.lower() in _PRIVATE_HOSTNAMES:
+        return True
     hostname_re = re.compile(
         r"^(?:[a-zA-Z0-9]"
         r"(?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+"
@@ -54,12 +59,47 @@ def is_valid_target(target: str) -> bool:
     return bool(hostname_re.match(cleaned))
 
 
+def is_private_target(target: str) -> bool:
+    """
+    Return True if the target resolves to a loopback, link-local, private
+    (RFC 1918), or otherwise non-routable address. Used to gate scans of
+    internal infrastructure behind an explicit opt-in flag.
+    """
+    cleaned = strip_scheme(target).lower()
+    if cleaned in _PRIVATE_HOSTNAMES:
+        return True
+    try:
+        ip = ipaddress.ip_address(resolve_target(cleaned))
+    except (ValueError, OSError):
+        return False
+    return (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_multicast
+        or ip.is_reserved
+        or ip.is_unspecified
+    )
+
+
 def strip_scheme(target: str) -> str:
     """Remove http(s):// prefix and path from target."""
     if "://" in target:
         parsed = urlparse(target)
         return parsed.hostname or target
     return target.split("/")[0]
+
+
+def safe_filename(name: str) -> str:
+    """
+    Build a safe filename component from a target. Whitelists alphanumerics,
+    dot, dash and underscore; everything else is replaced. Defends against
+    accidental path traversal if validation upstream is ever loosened.
+    """
+    cleaned = re.sub(r"[^A-Za-z0-9._-]", "_", name)
+    # Strip leading dots so the file is never hidden / never resembles "..".
+    cleaned = cleaned.lstrip(".")
+    return cleaned[:128] or "scan"
 
 
 def get_service_name(port: int) -> str:

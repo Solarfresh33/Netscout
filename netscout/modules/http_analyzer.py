@@ -7,7 +7,11 @@ from urllib.parse import urlparse
 
 try:
     import requests
-    from requests.exceptions import RequestException
+    import urllib3
+    from requests.exceptions import RequestException, SSLError
+    # We disable the warning explicitly on the rare path where we fall back
+    # to verify=False, so it doesn't pollute the CLI output.
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     HAS_REQUESTS = True
 except ImportError:
     HAS_REQUESTS = False
@@ -68,6 +72,37 @@ SCORE_DEDUCTIONS: dict[Severity, int] = {
 SENSITIVE_HEADERS = ["Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version"]
 
 
+def _fetch(url: str) -> tuple[Optional["requests.Response"], bool]:
+    """
+    Try to fetch URL with strict TLS verification first; if that fails
+    with an SSLError, retry with verification disabled and signal it.
+
+    Returns:
+        (response, tls_verified). tls_verified is False if we had to
+        downgrade. Response is None on total failure.
+    """
+    headers = {"User-Agent": "NetScout/1.0 (security-scanner)"}
+    try:
+        response = requests.get(
+            url, timeout=TIMEOUT, allow_redirects=True,
+            verify=True, headers=headers,
+        )
+        return response, True
+    except SSLError:
+        # Cert is broken — that's exactly what a security scanner needs to
+        # know. Retry without verification but record the fact.
+        try:
+            response = requests.get(
+                url, timeout=TIMEOUT, allow_redirects=True,
+                verify=False, headers=headers,
+            )
+            return response, False
+        except RequestException:
+            return None, False
+    except RequestException:
+        return None, True
+
+
 def analyze_http(url: str) -> Optional[HTTPResult]:
     """
     Fetch HTTP(S) headers and evaluate security posture.
@@ -84,16 +119,19 @@ def analyze_http(url: str) -> Optional[HTTPResult]:
     url = _ensure_scheme(url)
     result = HTTPResult(url=url)
 
-    try:
-        response = requests.get(
-            url,
-            timeout=TIMEOUT,
-            allow_redirects=True,
-            verify=False,
-            headers={"User-Agent": "NetScout/1.0 (security-scanner)"},
-        )
-    except RequestException:
+    response, tls_verified = _fetch(url)
+    if response is None:
         return None
+
+    if not tls_verified:
+        result.issues.append(HeaderIssue(
+            severity=Severity.HIGH,
+            header="TLS",
+            description="TLS certificate verification failed. Connection was "
+                        "downgraded to fetch headers anyway.",
+            recommendation="Fix the certificate chain on the target server.",
+        ))
+        result.score -= 20
 
     result.status_code = response.status_code
     result.headers = dict(response.headers)
@@ -102,9 +140,39 @@ def analyze_http(url: str) -> Optional[HTTPResult]:
 
     _audit_security_headers(result)
     _audit_information_disclosure(result)
+    _audit_redirects(result)
 
     result.score = max(result.score, 0)
     return result
+
+
+def _audit_redirects(result: HTTPResult) -> None:
+    """
+    Flag redirects that escape the original host or land on an internal
+    address — useful both as a finding and as defense-in-depth against
+    accidental SSRF when this code is reused in a server context.
+    """
+    if not result.redirects:
+        return
+
+    try:
+        original_host = urlparse(result.url).hostname or ""
+    except Exception:
+        original_host = ""
+
+    for redirect_url in result.redirects + [result.url]:
+        try:
+            host = urlparse(redirect_url).hostname or ""
+        except Exception:
+            continue
+        if host and original_host and host != original_host:
+            result.issues.append(HeaderIssue(
+                severity=Severity.LOW,
+                header="Location",
+                description=f"Redirect leaves original host: {host}",
+                recommendation="Verify the redirect target is intended.",
+            ))
+            break
 
 
 def _audit_security_headers(result: HTTPResult) -> None:

@@ -16,6 +16,19 @@ except ImportError:
 from netscout.core.models import DNSRecord, DNSResult
 
 
+# Exceptions we expect from network/DNS work — anything else is a real bug
+# and should propagate so we can find and fix it.
+_DNS_EXPECTED_ERRORS: tuple = ()
+if HAS_DNSPYTHON:
+    _DNS_EXPECTED_ERRORS = (
+        dns.exception.DNSException,
+        socket.error,
+        ConnectionError,
+        TimeoutError,
+        ValueError,  # rdata.to_text() on a malformed record
+    )
+
+
 RECORD_TYPES = ["A", "AAAA", "MX", "NS", "TXT", "SOA", "CNAME", "PTR"]
 
 COMMON_SUBDOMAINS = [
@@ -73,7 +86,7 @@ def _collect_records_dnspython(target: str, result: DNSResult) -> None:
                     result.mx_records.append(value)
                 elif rtype == "NS":
                     result.nameservers.append(value)
-        except (dns.exception.DNSException, Exception):
+        except _DNS_EXPECTED_ERRORS:
             continue
 
 
@@ -98,7 +111,7 @@ def _attempt_zone_transfer(target: str, result: DNSResult) -> None:
                     fqdn = f"{name}.{target}"
                     result.subdomains.append(fqdn)
                 return
-        except Exception:
+        except _DNS_EXPECTED_ERRORS:
             continue
 
 

@@ -1,11 +1,24 @@
 """TCP port scanner with banner grabbing."""
 
+import re
 import socket
 import concurrent.futures
 from typing import Optional
 
 from netscout.core.models import PortResult, PortState
 from netscout.core.utils import get_service_name, TOP_PORTS
+
+
+# SECURITY: strip ASCII control characters (including ANSI escape sequences
+# like \x1b[2J that could clear the terminal or hide malicious output) before
+# storing or displaying any banner. The remote service is untrusted by design.
+_CTRL_CHARS = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+
+
+def _sanitize_banner(text: str) -> str:
+    """Remove control characters and trim a banner safely."""
+    cleaned = _CTRL_CHARS.sub("", text)
+    return cleaned.strip()[:200]
 
 
 BANNER_PROBES = {
@@ -47,7 +60,8 @@ def _grab_banner(sock: socket.socket, port: int) -> str:
         if probe is not None and probe:
             sock.sendall(probe)
         raw = sock.recv(1024)
-        return raw.decode(errors="replace").strip()[:200]
+        decoded = raw.decode(errors="replace")
+        return _sanitize_banner(decoded)
     except (socket.timeout, OSError):
         return ""
 
