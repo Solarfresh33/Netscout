@@ -32,7 +32,7 @@ Scan ports, analyze SSL/TLS, enumerate DNS, and audit HTTP security headers from
 ```bash
 # Clone the repo
 git clone <repo-url>
-cd Projet-Cyber
+cd CAMILLE
 
 # Install dependencies
 pip install -r requirements.txt
