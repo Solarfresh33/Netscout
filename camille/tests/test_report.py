@@ -5,11 +5,11 @@ import tempfile
 from pathlib import Path
 from datetime import datetime, timezone
 
-from netscout.core.models import (
+from camille.core.models import (
     ScanResult, PortResult, PortState,
     SSLResult, DNSResult, DNSRecord, HTTPResult,
 )
-from netscout.reports.generator import to_json, save_json, save_html
+from camille.reports.generator import to_json, save_json, save_html
 
 
 def _make_full_result() -> ScanResult:
@@ -62,7 +62,7 @@ class TestHTMLReport:
             assert path.exists()
             content = path.read_text()
             assert "example.com" in content
-            assert "NetScout" in content
+            assert "CAMILLE" in content
 
     def test_html_contains_port_table(self):
         try:
@@ -72,7 +72,7 @@ class TestHTMLReport:
             pytest.skip("jinja2 not installed")
 
         result = _make_full_result()
-        from netscout.reports.generator import to_html
+        from camille.reports.generator import to_html
         html = to_html(result)
         assert "Port Scan" in html
         assert "80" in html

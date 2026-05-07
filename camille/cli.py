@@ -1,4 +1,4 @@
-"""NetScout – Network Security Reconnaissance & Analysis Tool CLI."""
+"""CAMILLE – Network Security Reconnaissance & Analysis Tool CLI."""
 
 from __future__ import annotations
 
@@ -14,32 +14,33 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich import box
 
-from netscout.core.models import ScanResult
-from netscout.core.utils import (
+from camille.core.models import ScanResult
+from camille.core.utils import (
     is_valid_target,
     is_private_target,
     safe_filename,
     strip_scheme,
     severity_color,
 )
-from netscout.modules.port_scanner import scan_ports, TOP_PORTS
-from netscout.modules.ssl_analyzer import analyze_ssl
-from netscout.modules.dns_enum import enumerate_dns
-from netscout.modules.http_analyzer import analyze_http
-from netscout.reports.generator import save_json, save_html
+from camille.modules.port_scanner import scan_ports, TOP_PORTS
+from camille.modules.ssl_analyzer import analyze_ssl
+from camille.modules.dns_enum import enumerate_dns
+from camille.modules.http_analyzer import analyze_http
+from camille.reports.generator import save_json, save_html
 
 
 console = Console()
 
 BANNER = r"""
-  _   _      _   ____                  _
- | \ | | ___| |_/ ___|  ___ ___  _   _| |_
- |  \| |/ _ \ __\___ \ / __/ _ \| | | | __|
- | |\  |  __/ |_ ___) | (_| (_) | |_| | |_
- |_| \_|\___|\__|____/ \___\___/ \__,_|\__|
+   ██████╗ █████╗ ███╗   ███╗██╗██╗     ██╗     ███████╗
+  ██╔════╝██╔══██╗████╗ ████║██║██║     ██║     ██╔════╝
+  ██║     ███████║██╔████╔██║██║██║     ██║     █████╗
+  ██║     ██╔══██║██║╚██╔╝██║██║██║     ██║     ██╔══╝
+  ╚██████╗██║  ██║██║ ╚═╝ ██║██║███████╗███████╗███████╗
+   ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚══════╝╚══════╝╚══════╝
 
-  Network Security Reconnaissance & Analysis Tool v1.0.0
-  For authorized use only.
+  Cyber Audit & Monitoring Intelligence for Local and Large Environments
+  For authorized use only — v1.0.0
 """
 
 
@@ -63,7 +64,7 @@ def _parse_ports(ports_str: Optional[str]) -> Optional[list[int]]:
 
 @click.group()
 def main() -> None:
-    """NetScout — Network Security Reconnaissance & Analysis Tool."""
+    """CAMILLE — Network Security Reconnaissance & Analysis Tool."""
     pass
 
 

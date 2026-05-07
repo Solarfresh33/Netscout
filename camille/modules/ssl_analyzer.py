@@ -5,7 +5,7 @@ import socket
 from datetime import datetime, timezone
 from typing import Optional
 
-from netscout.core.models import SSLResult, SSLIssue, Severity
+from camille.core.models import SSLResult, SSLIssue, Severity
 
 
 WEAK_PROTOCOLS = {"SSLv2", "SSLv3", "TLSv1", "TLSv1.1"}

@@ -3,8 +3,8 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
-from netscout.core.models import SSLResult, Severity
-from netscout.modules.ssl_analyzer import _audit, _flatten_rdn, _extract_san
+from camille.core.models import SSLResult, Severity
+from camille.modules.ssl_analyzer import _audit, _flatten_rdn, _extract_san
 
 
 def _make_result(**kwargs) -> SSLResult:

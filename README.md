@@ -1,6 +1,6 @@
-# NetScout
+# CAMILLE
 
-Network Security Reconnaissance & Analysis Tool. Scan ports, analyze SSL/TLS, enumerate DNS, and audit HTTP security headers from a single command.
+**C**yber **A**udit & **M**onitoring **I**ntelligence for **L**ocal and **L**arge **E**nvironments. Scan ports, analyze SSL/TLS, enumerate DNS, and audit HTTP security headers from a single command.
 
 > **For authorized use only.** Only scan systems you own or have explicit permission to test.
 
@@ -37,10 +37,10 @@ pip install -r requirements.txt
 
 ```bash
 # Full scan of a domain
-python -m netscout.cli scan example.com
+python -m camille.cli scan example.com
 
 # Save reports (JSON + HTML) to a directory
-python -m netscout.cli scan example.com --output ./reports
+python -m camille.cli scan example.com --output ./reports
 ```
 
 ---
@@ -50,7 +50,7 @@ python -m netscout.cli scan example.com --output ./reports
 ### `scan` : Run a security scan
 
 ```
-python -m netscout.cli scan TARGET [OPTIONS]
+python -m camille.cli scan TARGET [OPTIONS]
 ```
 
 `TARGET` can be a hostname (`example.com`), an IP address (`192.168.1.1`), or a URL (`https://example.com`).
@@ -75,19 +75,19 @@ python -m netscout.cli scan TARGET [OPTIONS]
 
 ```bash
 # Scan top ports only (no DNS, no HTTP)
-python -m netscout.cli scan 10.0.0.1 --no-dns --no-http
+python -m camille.cli scan 10.0.0.1 --no-dns --no-http
 
 # Scan a custom port range and save a JSON report
-python -m netscout.cli scan example.com --ports 1-1024 --output ./reports --format json
+python -m camille.cli scan example.com --ports 1-1024 --output ./reports --format json
 
 # HTTPS-only scan on a non-standard port
-python -m netscout.cli scan example.com --no-ports --no-dns --ssl-port 8443
+python -m camille.cli scan example.com --no-ports --no-dns --ssl-port 8443
 
 # Fast scan — skip subdomain bruteforce, use more threads
-python -m netscout.cli scan example.com --no-bruteforce --threads 200
+python -m camille.cli scan example.com --no-bruteforce --threads 200
 
 # Quiet mode, save HTML report
-python -m netscout.cli scan example.com -q --output ./reports --format html
+python -m camille.cli scan example.com -q --output ./reports --format html
 ```
 
 ---
@@ -95,7 +95,7 @@ python -m netscout.cli scan example.com -q --output ./reports --format html
 ### `info` : Show module status
 
 ```bash
-python -m netscout.cli info
+python -m camille.cli info
 ```
 
 Displays which optional dependencies are available (requests, dnspython, jinja2).
@@ -104,7 +104,7 @@ Displays which optional dependencies are available (requests, dnspython, jinja2)
 
 ## Reports
 
-When `--output` is set, NetScout writes reports to the specified directory.
+When `--output` is set, CAMILLE writes reports to the specified directory.
 
 ```
 reports/
@@ -156,7 +156,7 @@ The HTTP score starts at 100 and is reduced for each missing or misconfigured he
 ## Running Tests
 
 ```bash
-PYTHONPATH=. python -m pytest netscout/tests/ -v
+PYTHONPATH=. python -m pytest camille/tests/ -v
 ```
 
 53 unit tests covering all modules. No network calls are made during tests (socket/requests are mocked).
@@ -167,7 +167,7 @@ PYTHONPATH=. python -m pytest netscout/tests/ -v
 
 ```
 Projet-Cyber/
-├── netscout/
+├── camille/
 │   ├── cli.py                  # Click CLI entry point
 │   ├── core/
 │   │   ├── models.py           # Data classes (ScanResult, PortResult, …)

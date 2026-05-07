@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.backends.legacy:build"
 
 [project]
-name = "netscout"
+name = "camille"
 version = "1.0.0"
-description = "Network Security Reconnaissance & Analysis Tool"
+description = "Cyber Audit & Monitoring Intelligence for Local and Large Environments"
 requires-python = ">=3.9"
 dependencies = [
     "colorama>=0.4.6",
@@ -19,14 +19,14 @@ dependencies = [
 ]
 
 [project.scripts]
-netscout = "netscout.cli:main"
+camille = "camille.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["netscout*"]
+include = ["camille*"]
 
 [tool.pytest.ini_options]
-testpaths = ["netscout/tests"]
+testpaths = ["camille/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

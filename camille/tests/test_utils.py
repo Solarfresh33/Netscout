@@ -1,7 +1,7 @@
 """Tests for core utility functions."""
 
 import pytest
-from netscout.core.utils import is_valid_target, strip_scheme, get_service_name
+from camille.core.utils import is_valid_target, strip_scheme, get_service_name
 
 
 class TestIsValidTarget:

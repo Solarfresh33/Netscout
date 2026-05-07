@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="netscout",
+    name="camille",
     version="1.0.0",
     description="Network Security Reconnaissance & Analysis Tool",
     packages=find_packages(),
@@ -18,7 +18,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "netscout=netscout.cli:main",
+            "camille=camille.cli:main",
         ],
     },
 )

@@ -5,8 +5,8 @@ import socket
 import concurrent.futures
 from typing import Optional
 
-from netscout.core.models import PortResult, PortState
-from netscout.core.utils import get_service_name, TOP_PORTS
+from camille.core.models import PortResult, PortState
+from camille.core.utils import get_service_name, TOP_PORTS
 
 
 # SECURITY: strip ASCII control characters (including ANSI escape sequences
@@ -24,7 +24,7 @@ def _sanitize_banner(text: str) -> str:
 BANNER_PROBES = {
     21:  b"",
     22:  b"",
-    25:  b"EHLO netscout\r\n",
+    25:  b"EHLO camille\r\n",
     80:  b"HEAD / HTTP/1.0\r\n\r\n",
     110: b"",
     143: b"",

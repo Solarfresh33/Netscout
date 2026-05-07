@@ -2,8 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
-from netscout.core.models import HTTPResult, Severity
-from netscout.modules.http_analyzer import (
+from camille.core.models import HTTPResult, Severity
+from camille.modules.http_analyzer import (
     _audit_security_headers,
     _audit_information_disclosure,
     _ensure_scheme,

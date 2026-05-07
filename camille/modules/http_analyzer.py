@@ -16,7 +16,7 @@ try:
 except ImportError:
     HAS_REQUESTS = False
 
-from netscout.core.models import HTTPResult, HeaderIssue, Severity
+from camille.core.models import HTTPResult, HeaderIssue, Severity
 
 
 TIMEOUT = 10
@@ -81,7 +81,7 @@ def _fetch(url: str) -> tuple[Optional["requests.Response"], bool]:
         (response, tls_verified). tls_verified is False if we had to
         downgrade. Response is None on total failure.
     """
-    headers = {"User-Agent": "NetScout/1.0 (security-scanner)"}
+    headers = {"User-Agent": "CAMILLE/1.0 (security-scanner)"}
     try:
         response = requests.get(
             url, timeout=TIMEOUT, allow_redirects=True,

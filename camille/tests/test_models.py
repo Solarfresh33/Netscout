@@ -1,7 +1,7 @@
 """Tests for data models."""
 
 from datetime import datetime, timezone
-from netscout.core.models import (
+from camille.core.models import (
     PortResult, PortState, SSLResult, SSLIssue, Severity,
     DNSRecord, DNSResult, HTTPResult, HeaderIssue, ScanResult,
 )

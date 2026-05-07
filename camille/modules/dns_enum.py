@@ -13,7 +13,7 @@ try:
 except ImportError:
     HAS_DNSPYTHON = False
 
-from netscout.core.models import DNSRecord, DNSResult
+from camille.core.models import DNSRecord, DNSResult
 
 
 # Exceptions we expect from network/DNS work — anything else is a real bug

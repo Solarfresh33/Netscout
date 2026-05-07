@@ -1,10 +1,10 @@
-# Corrections de sécurité NetScout
+# Corrections de sécurité — CAMILLE
 
 Résumé des modifications apportées suite à l'audit de sécurité.
 
-## 🔴 Fix #1 : XSS stocké dans le rapport HTML
+## 🔴 Fix #1 — XSS stocké dans le rapport HTML (CRITIQUE)
 
-**Fichier :** `netscout/reports/generator.py`
+**Fichier :** `camille/reports/generator.py`
 
 ### Avant
 ```python
@@ -36,9 +36,9 @@ banner = '<script>alert("PWNED")</script>'
 
 ---
 
-## 🟠 Fix #2 : Injection ANSI dans les bannières
+## 🟠 Fix #2 — Injection ANSI dans les bannières (ÉLEVÉ)
 
-**Fichier :** `netscout/modules/port_scanner.py`
+**Fichier :** `camille/modules/port_scanner.py`
 
 ### Avant
 ```python
@@ -61,9 +61,9 @@ est retiré, donc `[2J` apparaît en texte brut.
 
 ---
 
-## 🟠 Fix #3 : TLS verify=False par défaut 
+## 🟠 Fix #3 — TLS verify=False par défaut (ÉLEVÉ)
 
-**Fichier :** `netscout/modules/http_analyzer.py`
+**Fichier :** `camille/modules/http_analyzer.py`
 
 ### Avant
 ```python
@@ -90,9 +90,9 @@ def _fetch(url):
 
 ---
 
-## 🟡 Fix #4 : Exceptions trop larges
+## 🟡 Fix #4 — Exceptions trop larges (MOYEN)
 
-**Fichier :** `netscout/modules/dns_enum.py`
+**Fichier :** `camille/modules/dns_enum.py`
 
 ### Avant
 ```python
@@ -117,9 +117,9 @@ naturellement et peut être diagnostiqué.
 
 ---
 
-## 🟡 Fix #5 : Crash sur cipher() = None
+## 🟡 Fix #5 — Crash sur cipher() = None (MOYEN)
 
-**Fichier :** `netscout/modules/ssl_analyzer.py`
+**Fichier :** `camille/modules/ssl_analyzer.py`
 
 ### Avant
 ```python
@@ -140,14 +140,14 @@ selon les conditions de la handshake.
 
 ---
 
-## 🟡 Fix #6 : Détection des cibles privées 
+## 🟡 Fix #6 — Détection des cibles privées (MOYEN)
 
-**Fichiers :** `netscout/core/utils.py`, `netscout/cli.py`
+**Fichiers :** `camille/core/utils.py`, `camille/cli.py`
 
 ### Nouveautés
 - `is_private_target(target)` : détecte loopback, RFC 1918, link-local,
   multicast, etc.
-- Flag CLI **`--allow-private`** : par défaut, NetScout refuse de scanner
+- Flag CLI **`--allow-private`** : par défaut, CAMILLE refuse de scanner
   une cible interne (refuser un scan de `169.254.169.254` empêche
   l'extraction accidentelle de credentials de métadonnées cloud).
 - `safe_filename(name)` : assainit les noms de fichiers de rapport via
@@ -156,12 +156,12 @@ selon les conditions de la handshake.
 
 ### Exemple
 ```bash
-$ netscout scan 192.168.1.1
+$ camille scan 192.168.1.1
 Refusing to scan private/internal target: 192.168.1.1
 Re-run with --allow-private if you really intend to scan internal
 infrastructure (and have authorisation to do so).
 
-$ netscout scan 192.168.1.1 --allow-private
+$ camille scan 192.168.1.1 --allow-private
 [scan proceeds]
 ```
 
@@ -173,7 +173,7 @@ Les **53 tests unitaires existants passent toujours** sans modification —
 les changements sont rétrocompatibles côté API.
 
 ```bash
-PYTHONPATH=. python -m pytest netscout/tests/ -v
+PYTHONPATH=. python -m pytest camille/tests/ -v
 # ============================== 53 passed in 0.33s ==============================
 ```
 
@@ -183,13 +183,13 @@ PYTHONPATH=. python -m pytest netscout/tests/ -v
 
 | Fichier | Changement |
 |---------|-----------|
-| `netscout/reports/generator.py` | Autoescape Jinja2 + CSP |
-| `netscout/modules/port_scanner.py` | Sanitisation ANSI |
-| `netscout/modules/http_analyzer.py` | TLS strict-first + audit redirects |
-| `netscout/modules/dns_enum.py` | Exceptions explicites |
-| `netscout/modules/ssl_analyzer.py` | Gestion cipher()=None |
-| `netscout/core/utils.py` | `is_private_target` + `safe_filename` |
-| `netscout/cli.py` | Flag `--allow-private` + filename safe |
+| `camille/reports/generator.py` | Autoescape Jinja2 + CSP |
+| `camille/modules/port_scanner.py` | Sanitisation ANSI |
+| `camille/modules/http_analyzer.py` | TLS strict-first + audit redirects |
+| `camille/modules/dns_enum.py` | Exceptions explicites |
+| `camille/modules/ssl_analyzer.py` | Gestion cipher()=None |
+| `camille/core/utils.py` | `is_private_target` + `safe_filename` |
+| `camille/cli.py` | Flag `--allow-private` + filename safe |
 
-Aucun changement dans `netscout/core/models.py` — les structures de données
+Aucun changement dans `camille/core/models.py` — les structures de données
 sont conservées telles quelles.

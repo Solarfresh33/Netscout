@@ -5,7 +5,7 @@ Chaque test cible une vulnérabilité précise identifiée lors de l'audit.
 Ces tests échoueraient sur la version originale du code.
 
 Lancer avec :
-    PYTHONPATH=. python -m pytest netscout/tests/test_security.py -v
+    PYTHONPATH=. python -m pytest camille/tests/test_security.py -v
 """
 
 import re
@@ -15,15 +15,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from netscout.core.models import (
+from camille.core.models import (
     ScanResult, PortResult, PortState,
     HTTPResult, SSLResult, DNSRecord, DNSResult, HeaderIssue, Severity,
 )
-from netscout.core.utils import (
+from camille.core.utils import (
     is_private_target, safe_filename, is_valid_target, strip_scheme,
 )
-from netscout.modules.port_scanner import _sanitize_banner
-from netscout.reports.generator import to_html
+from camille.modules.port_scanner import _sanitize_banner
+from camille.reports.generator import to_html
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -303,7 +303,7 @@ class TestSSLAnalyzerRobustness:
 
     def test_cipher_none_does_not_crash(self):
         """Un faux socket avec cipher()=None ne doit pas crasher."""
-        from netscout.modules.ssl_analyzer import _extract_result
+        from camille.modules.ssl_analyzer import _extract_result
         mock_sock = MagicMock()
         mock_sock.cipher.return_value = None
         mock_sock.getpeercert.return_value = {}
@@ -316,7 +316,7 @@ class TestSSLAnalyzerRobustness:
 
     def test_cipher_partial_tuple_handled(self):
         """Tuple cipher() avec valeurs None à l'intérieur."""
-        from netscout.modules.ssl_analyzer import _extract_result
+        from camille.modules.ssl_analyzer import _extract_result
         mock_sock = MagicMock()
         mock_sock.cipher.return_value = (None, None, None)
         mock_sock.getpeercert.return_value = {}
@@ -327,7 +327,7 @@ class TestSSLAnalyzerRobustness:
 
     def test_empty_cert_handled(self):
         """Un certificat vide (dict vide) ne doit pas crasher l'audit."""
-        from netscout.modules.ssl_analyzer import _extract_result
+        from camille.modules.ssl_analyzer import _extract_result
         mock_sock = MagicMock()
         mock_sock.cipher.return_value = ("TLS_AES_256_GCM_SHA384", "TLSv1.3", 256)
         mock_sock.getpeercert.return_value = {}
@@ -350,7 +350,7 @@ class TestDNSExceptionScope:
 
     def test_keyboard_interrupt_propagates(self):
         """KeyboardInterrupt ne doit JAMAIS être avalé."""
-        from netscout.modules.dns_enum import _check_subdomain
+        from camille.modules.dns_enum import _check_subdomain
         with patch("socket.gethostbyname", side_effect=KeyboardInterrupt):
             with pytest.raises(KeyboardInterrupt):
                 _check_subdomain("test", "example.com")
@@ -358,14 +358,14 @@ class TestDNSExceptionScope:
     def test_nonexistent_subdomain_returns_none(self):
         """Un sous-domaine inexistant doit retourner None sans exception."""
         with patch("socket.gethostbyname", side_effect=socket.gaierror):
-            from netscout.modules.dns_enum import _check_subdomain
+            from camille.modules.dns_enum import _check_subdomain
             result = _check_subdomain("nonexistent", "example.com")
             assert result is None
 
     def test_existing_subdomain_returned(self):
         """Un sous-domaine qui se résout doit être retourné."""
         with patch("socket.gethostbyname", return_value="1.2.3.4"):
-            from netscout.modules.dns_enum import _check_subdomain
+            from camille.modules.dns_enum import _check_subdomain
             result = _check_subdomain("www", "example.com")
             assert result == "www.example.com"
 
@@ -382,13 +382,13 @@ class TestHTTPAnalyzerTLSVerification:
 
     def test_successful_tls_no_warning(self):
         """Si le TLS est valide, aucune issue TLS ne doit apparaître."""
-        from netscout.modules.http_analyzer import analyze_http
+        from camille.modules.http_analyzer import analyze_http
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {"Server": "nginx"}
         mock_response.history = []
 
-        with patch("netscout.modules.http_analyzer._fetch",
+        with patch("camille.modules.http_analyzer._fetch",
                    return_value=(mock_response, True)):
             result = analyze_http("https://example.com")
 
@@ -397,13 +397,13 @@ class TestHTTPAnalyzerTLSVerification:
 
     def test_failed_tls_reported_as_issue(self):
         """Si on doit fallback sur verify=False, une issue HIGH est ajoutée."""
-        from netscout.modules.http_analyzer import analyze_http
+        from camille.modules.http_analyzer import analyze_http
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {"Server": "nginx"}
         mock_response.history = []
 
-        with patch("netscout.modules.http_analyzer._fetch",
+        with patch("camille.modules.http_analyzer._fetch",
                    return_value=(mock_response, False)):
             result = analyze_http("https://example.com")
 
@@ -413,13 +413,13 @@ class TestHTTPAnalyzerTLSVerification:
 
     def test_score_reduced_when_tls_fails(self):
         """Le score est pénalisé quand la vérification TLS échoue."""
-        from netscout.modules.http_analyzer import analyze_http
+        from camille.modules.http_analyzer import analyze_http
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.headers = {}
         mock_response.history = []
 
-        with patch("netscout.modules.http_analyzer._fetch",
+        with patch("camille.modules.http_analyzer._fetch",
                    return_value=(mock_response, False)):
             result = analyze_http("https://example.com")
 
