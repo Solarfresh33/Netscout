@@ -97,6 +97,8 @@ def safe_filename(name: str) -> str:
     accidental path traversal if validation upstream is ever loosened.
     """
     cleaned = re.sub(r"[^A-Za-z0-9._-]", "_", name)
+    # Collapse any '..' sequences into a single underscore (path traversal).
+    cleaned = re.sub(r"\.{2,}", "_", cleaned)
     # Strip leading dots so the file is never hidden / never resembles "..".
     cleaned = cleaned.lstrip(".")
     return cleaned[:128] or "scan"
