@@ -316,5 +316,38 @@ def info() -> None:
     console.print("  [green]✓[/green] SSL/TLS analyzer (stdlib)")
 
 
+# --------------------------------------------------------------------------- #
+# serve command — launch the web interface                                      #
+# --------------------------------------------------------------------------- #
+
+@main.command()
+@click.option("--host", default="127.0.0.1", show_default=True, help="Bind address")
+@click.option("--port", default=8787, show_default=True, help="Listen port")
+@click.option("--debug", is_flag=True, help="Enable Flask debug mode")
+def serve(host: str, port: int, debug: bool) -> None:
+    """Launch the CAMILLE web interface in a local browser."""
+    _print_banner()
+    try:
+        from camille.web.server import run as run_web
+    except ImportError:
+        console.print(
+            "[red]Flask is required for the web interface.[/red]\n"
+            "Install it with: [cyan]pip install flask[/cyan]"
+        )
+        sys.exit(1)
+    run_web(host=host, port=port, debug=debug)
+
+
+@main.command()
+def desktop() -> None:
+    """Launch CAMILLE as a native desktop application window."""
+    try:
+        from camille.desktop import main as run_desktop
+    except ImportError as exc:
+        console.print(f"[red]Could not start desktop app:[/red] {exc}")
+        sys.exit(1)
+    run_desktop()
+
+
 if __name__ == "__main__":
     main()
