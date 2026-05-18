@@ -25,7 +25,7 @@ Cyber Audit & Monitoring Intelligence for Local and Large Environments. Scan por
 ```bash
 # Clone the repo
 git clone <repo-url>
-cd Projet-Cyber
+cd CAMILLE
 
 # Install dependencies
 pip install -r requirements.txt
