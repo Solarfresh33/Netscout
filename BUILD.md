@@ -20,7 +20,7 @@ Double-clique simplement sur ce fichier. Il va :
 2. installer les dépendances + PyInstaller,
 3. compiler l'exécutable.
 
-Résultat : **`dist\CAMILLE.exe`**. Un fichier unique, déplaçable et
+Résultat : **`dist\CAMILLE.exe`** — un fichier unique, déplaçable et
 distribuable tel quel. Double-clic pour lancer.
 
 ---
@@ -40,7 +40,7 @@ L'exécutable apparaît dans `dist\CAMILLE.exe`.
 
 ## Tester sans compiler (mode développement)
 
-Pas besoin de construire le `.exe` pour utiliser l'app. Elle fonctionne
+Pas besoin de construire le `.exe` pour utiliser l'app — elle fonctionne
 directement comme fenêtre native :
 
 ```bash

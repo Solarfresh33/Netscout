@@ -50,6 +50,45 @@ def _wait_until_up(port: int, timeout: float = 8.0) -> bool:
     return False
 
 
+class Api:
+    """
+    JS <-> Python bridge exposed to the webview as `window.pywebview.api`.
+
+    A pywebview window is not a full browser: it has no download manager, so
+    a `Content-Disposition: attachment` response does nothing. Instead the UI
+    calls `save_report()`, which opens a real native "Save As" dialog and
+    writes the last scan's JSON to the chosen path.
+    """
+
+    def save_report(self) -> dict:
+        from camille.web.server import _LAST_RESULT
+
+        data = _LAST_RESULT.get("json")
+        if not data:
+            return {"ok": False, "error": "Aucun rapport disponible. Lance d'abord un scan."}
+
+        try:
+            import webview
+
+            window = webview.windows[0]
+            result = window.create_file_dialog(
+                webview.SAVE_DIALOG,
+                save_filename="camille-report.json",
+                file_types=("Fichier JSON (*.json)", "Tous les fichiers (*.*)"),
+            )
+            if not result:
+                return {"ok": False, "cancelled": True}
+
+            # pywebview returns a str (newer) or a 1-tuple (older versions).
+            path = result if isinstance(result, str) else result[0]
+            from pathlib import Path
+
+            Path(path).write_text(data, encoding="utf-8")
+            return {"ok": True, "path": str(path)}
+        except Exception as exc:  # noqa: BLE001 — report failure to the UI
+            return {"ok": False, "error": str(exc)}
+
+
 def main() -> None:
     import os
 
@@ -73,6 +112,7 @@ def main() -> None:
             height=900,
             min_size=(900, 640),
             background_color="#060a07",
+            js_api=Api(),
         )
         webview.start()  # blocks until the window is closed
     except ImportError:

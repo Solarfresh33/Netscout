@@ -267,12 +267,15 @@
 
   <div class="toolbar" id="toolbar">
     <div class="summary" id="summary"></div>
-    <button class="ghost" id="dl">⤓ Exporter le rapport JSON</button>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span id="dl-status" style="font-size:12px;color:var(--muted)"></span>
+      <button class="ghost" id="dl">⤓ Exporter le rapport JSON</button>
+    </div>
   </div>
 
   <div id="results"></div>
 
-  <footer>CAMILLE v2.0.0 — Pour usage autorisé uniquement</footer>
+  <footer>CAMILLE v1.0.0 — Pour usage autorisé uniquement</footer>
 </div>
 
 <script>
@@ -449,7 +452,37 @@ function finish(){
 
 runBtn.addEventListener('click', startScan);
 $('#target').addEventListener('keydown', e=>{ if(e.key==='Enter') startScan(); });
-$('#dl').addEventListener('click', ()=>{ window.location = '/api/report.json'; });
+function showDlStatus(msg, color){
+  const el = $('#dl-status');
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+  if(msg){ clearTimeout(el._t); el._t = setTimeout(()=>{ el.textContent=''; }, 5000); }
+}
+
+$('#dl').addEventListener('click', async ()=>{
+  // Desktop app (pywebview): no browser download manager — use the native
+  // "Save As" dialog exposed by the Python side.
+  const hasNativeApi = window.pywebview && window.pywebview.api
+                        && window.pywebview.api.save_report;
+  if(hasNativeApi){
+    showDlStatus('Ouverture de la fenêtre d\u2019enregistrement\u2026');
+    try{
+      const res = await window.pywebview.api.save_report();
+      if(res && res.ok){
+        showDlStatus('\u2713 Rapport enregistré', 'var(--green)');
+      } else if(res && res.cancelled){
+        showDlStatus('Enregistrement annulé');
+      } else {
+        showDlStatus('\u2717 ' + ((res && res.error) || 'Échec de l\u2019export'), 'var(--crit)');
+      }
+    }catch(e){
+      showDlStatus('\u2717 ' + e, 'var(--crit)');
+    }
+    return;
+  }
+  // Plain browser (camille serve): a normal download works fine.
+  window.location = '/api/report.json';
+});
 </script>
 </body>
 </html>
